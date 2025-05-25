@@ -135,7 +135,6 @@ def update_alt_text_in_df(df_session_key, image_index_value, widget_key):
 # Initialize session state from file or defaults
 if 'app_initialized' not in st.session_state:
     st.session_state.google_api_configured_status = None
-    st.session_state.keys_saved_locally = os.path.exists(CONFIG_FILE_NAME)
     st.session_state.custom_prompt = DEFAULT_PROMPT
     st.session_state.custom_max_tokens = DEFAULT_MAX_TOKENS
     
