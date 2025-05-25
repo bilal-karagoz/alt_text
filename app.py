@@ -10,11 +10,10 @@ import base64 # Needed for Base64 encoding thumbnails
 import requests # For fetching images from URLs
 
 # --- Page Configuration ---
-st.set_page_config(page_title="AI Alt Text Creator & Translator", layout="wide")
+st.set_page_config(page_title="AI Alt Text Generator & Translator", layout="wide")
 
 # --- Static Configuration ---
 GOOGLE_AI_MODEL_NAME = 'gemini-2.0-flash' # Updated model
-CONFIG_FILE_NAME = ".app_api_keys.json" # File to store API keys locally
 DEFAULT_PROMPT = "Describe this image concisely for use as website alt text. Focus on the main subject, any important context and the marketing intent. Avoid phrases like 'Image of' or 'Picture of'. If the image contains clearly legible and important text, incorporate that text naturally into the description if it's central to understanding the image."
 DEFAULT_MAX_TOKENS = 150
 THUMBNAIL_SIZE = (500, 500) # Tuple for (width, height)
@@ -156,21 +155,17 @@ if 'app_initialized' not in st.session_state:
     st.session_state.app_initialized = True
 
 # --- Streamlit App UI ---
-st.title("🖼️ AI Alt Text & Translation Hub 💬")
+st.title("🖼️ AI Alt Text Generator & Translator")
 
 with st.sidebar.expander("🔑 API Keys Configuration", expanded=not bool(st.session_state.get('google_api_key'))):
-    st.markdown("API keys are stored locally in your app's directory if entered.") # This message might need adjustment now
-    # Google AI API Key Input
     st.text_input("Google AI API Key", type="password", key="google_api_input_widget",
                   on_change=lambda: (
                       st.session_state.update(google_api_key=st.session_state.google_api_input_widget),
                       ( # This inner tuple groups actions for when the key is present
                           genai.configure(api_key=st.session_state.google_api_key),
                           st.session_state.update(google_api_configured_status=True)
-                          # save_api_keys_to_file() # REMOVED
                       ) if st.session_state.google_api_key # Condition: if key is present
                       else st.session_state.update(google_api_configured_status=None) # Else: update status
-                      # save_api_keys_to_file() # REMOVED (this was an unconditional call in the original tuple structure)
                   ) if "google_api_input_widget" in st.session_state else None, # Guard for on_change
                   value=st.session_state.get('google_api_key', ""), help="Required for generating alt text.")
     
@@ -183,7 +178,6 @@ with st.sidebar.expander("🔑 API Keys Configuration", expanded=not bool(st.ses
                   key="deepl_api_input_widget",
                   on_change=lambda: (
                       st.session_state.update(deepl_api_key=st.session_state.deepl_api_input_widget)
-                      # save_api_keys_to_file() # REMOVED
                   ) if "deepl_api_input_widget" in st.session_state else None, # Guard for on_change
                   value=st.session_state.get('deepl_api_key', ""))
     
