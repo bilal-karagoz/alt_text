@@ -318,8 +318,8 @@ if app_mode == "Generate Alt Text from Images":
                 
                 col1_actions_eng, col2_actions_eng = st.columns(2)
                 with col1_actions_eng:
-                    st.download_button(label="📥 Download Edited English Texts (Excel)", data=to_excel(df_eng_results),
-                                       file_name="edited_english_alt_texts.xlsx", mime="application/vnd.ms-excel", key="dl_eng_alt_tab")
+                    st.download_button(label="📥 Download English Texts (Excel)", data=to_excel(df_eng_results),
+                                       file_name="english_alt_texts.xlsx", mime="application/vnd.ms-excel", key="dl_eng_alt_tab")
                 with col2_actions_eng:
                     if st.button("🌍 Translate Again / New Languages", type="secondary", key="translate_btn_tab"):
                         st.session_state.show_translation_options = True
