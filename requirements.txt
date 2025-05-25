@@ -1,0 +1,7 @@
+streamlit
+pandas
+Pillow
+google-generativeai
+deepl
+requests
+openpyxl
