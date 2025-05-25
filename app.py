@@ -121,24 +121,6 @@ def to_excel(df):
     with pd.ExcelWriter(output, engine='openpyxl') as writer: df_for_excel.to_excel(writer, index=False, sheet_name='Sheet1')
     return output.getvalue()
 
-# --- API Key Management ---
-def load_api_keys_from_file():
-    keys = {}
-    if os.path.exists(CONFIG_FILE_NAME):
-        try:
-            with open(CONFIG_FILE_NAME, 'r') as f: keys = json.load(f)
-        except Exception as e: st.sidebar.error(f"Error loading keys from {CONFIG_FILE_NAME}: {e}")
-    return keys.get('google_api_key', ""), keys.get('deepl_api_key', "")
-
-def save_api_keys_to_file():
-    keys_to_save = {'google_api_key': st.session_state.google_api_key, 'deepl_api_key': st.session_state.deepl_api_key}
-    try:
-        with open(CONFIG_FILE_NAME, 'w') as f: json.dump(keys_to_save, f)
-        st.session_state.keys_saved_locally = True
-    except Exception as e:
-        st.sidebar.error(f"Could not save API keys to {CONFIG_FILE_NAME}: {e}")
-        st.session_state.keys_saved_locally = False
-
 # Callback to update DataFrame when alt text is edited
 def update_alt_text_in_df(df_session_key, image_index_value, widget_key):
     if widget_key in st.session_state and df_session_key in st.session_state:
@@ -177,24 +159,36 @@ if 'app_initialized' not in st.session_state:
 st.title("🖼️ AI Alt Text & Translation Hub 💬")
 
 with st.sidebar.expander("🔑 API Keys Configuration", expanded=not bool(st.session_state.get('google_api_key'))):
-    st.markdown("API keys are stored locally in your app's directory if entered.")
+    st.markdown("API keys are stored locally in your app's directory if entered.") # This message might need adjustment now
+    # Google AI API Key Input
     st.text_input("Google AI API Key", type="password", key="google_api_input_widget",
                   on_change=lambda: (
                       st.session_state.update(google_api_key=st.session_state.google_api_input_widget),
-                      (genai.configure(api_key=st.session_state.google_api_key), st.session_state.update(google_api_configured_status=True), save_api_keys_to_file()) if st.session_state.google_api_key
-                      else st.session_state.update(google_api_configured_status=None), save_api_keys_to_file()
-                  ) if "google_api_input_widget" in st.session_state else None,
+                      ( # This inner tuple groups actions for when the key is present
+                          genai.configure(api_key=st.session_state.google_api_key),
+                          st.session_state.update(google_api_configured_status=True)
+                          # save_api_keys_to_file() # REMOVED
+                      ) if st.session_state.google_api_key # Condition: if key is present
+                      else st.session_state.update(google_api_configured_status=None) # Else: update status
+                      # save_api_keys_to_file() # REMOVED (this was an unconditional call in the original tuple structure)
+                  ) if "google_api_input_widget" in st.session_state else None, # Guard for on_change
                   value=st.session_state.get('google_api_key', ""), help="Required for generating alt text.")
-    if st.session_state.get('google_api_configured_status') is True: st.caption("✔️ Google AI Key active.")
+    
+    if st.session_state.get('google_api_configured_status') is True: st.caption("✔️ Google AI Key active for this session.")
     elif isinstance(st.session_state.get('google_api_configured_status'), str): st.error(st.session_state.google_api_configured_status)
-    elif not st.session_state.get('google_api_key'): st.caption("Google AI Key not yet entered.")
+    elif not st.session_state.get('google_api_key'): st.caption("Google AI Key not yet entered for this session.")
 
+    # DeepL API Key Input
     st.text_input("DeepL API Key", type="password", help="Optional. Only needed for translation features.",
                   key="deepl_api_input_widget",
-                  on_change=lambda: (st.session_state.update(deepl_api_key=st.session_state.deepl_api_input_widget), save_api_keys_to_file()) if "deepl_api_input_widget" in st.session_state else None,
+                  on_change=lambda: (
+                      st.session_state.update(deepl_api_key=st.session_state.deepl_api_input_widget)
+                      # save_api_keys_to_file() # REMOVED
+                  ) if "deepl_api_input_widget" in st.session_state else None, # Guard for on_change
                   value=st.session_state.get('deepl_api_key', ""))
-    if st.session_state.get('deepl_api_key'): st.caption("✔️ DeepL Key entered.")
-    else: st.caption("DeepL Key not entered (translation disabled).")
+    
+    if st.session_state.get('deepl_api_key'): st.caption("✔️ DeepL Key entered for this session.")
+    else: st.caption("DeepL Key not entered (translation disabled for this session).")
 
 st.sidebar.header("⚙️ Operation Mode")
 app_mode = st.sidebar.radio("Choose what you want to do:",
